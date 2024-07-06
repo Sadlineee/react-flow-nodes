@@ -1,0 +1,51 @@
+.nodes {
+    height: 100vh;
+    width: 100vw;
+    @include main-font();
+    font-weight: 600;
+
+    &__addField {
+        position: absolute;
+        z-index: 1;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.25rem;
+        margin: 0.5rem;
+
+        &--form {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 0.25rem;
+            height: 2rem;
+
+            &--text, &--number {
+                height: 100%;
+                width: 12rem;
+                padding: 0.5rem;
+                @include main-font();
+                font-size: 1rem;
+                font-weight: 400;
+                border: 1px solid rgb(140, 140, 140);
+
+                &:focus {
+                    outline: none;
+                }
+            }
+
+            &--button {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+                width: 5rem;
+                font-size: 1.25rem;
+                color: rgb(140, 140, 140);
+                background: rgb(161, 255, 152);
+                border: 1px solid rgb(140, 140, 140);
+                cursor: pointer;
+            }
+        }
+    }
+}
