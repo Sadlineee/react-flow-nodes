@@ -26,24 +26,60 @@ const Nodes = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const positionNodes = (nodes: Node[], parentId: number | null = null, x: number = 0, y: number = 0): FlowNode[] => {
-    return nodes
-      .filter((node) => node.parentId === parentId)
-      .map((node, index) => {
-        const newX = x + index * 300
-        const newY = y + 200
-        const children = positionNodes(nodes, node.id, newX, newY)
+  const NODE_WIDTH = 300
+  const NODE_HEIGHT = 40
+  const NODE_SPACING_X = 0
+  const NODE_SPACING_Y = 100
 
-        return [
-          {
-            id: node.id.toString(),
-            data: { label: node.title },
-            position: { x: newX, y: newY }
-          },
-          ...children
+  interface PositionedNode extends Node {
+    width: number
+  }
+
+  const calculateSubtreeWidth = (nodes: PositionedNode[], parentId: number | null = null): number => {
+    const childNodes = nodes.filter((node) => node.parentId === parentId)
+    if (childNodes.length === 0) {
+      return NODE_WIDTH + NODE_SPACING_X
+    }
+    let totalWidth = 0
+    childNodes.forEach((child) => {
+      totalWidth += calculateSubtreeWidth(nodes, child.id)
+    })
+    return totalWidth
+  }
+
+  const positionNodes = (nodes: Node[]): FlowNode[] => {
+    const positionedNodes: PositionedNode[] = nodes.map((node) => ({ ...node, width: 0 }))
+    positionedNodes.forEach((node) => {
+      node.width = calculateSubtreeWidth(positionedNodes, node.id)
+    })
+
+    const placeNodes = (parentId: number | null = null, x: number = 0, y: number = 0): FlowNode[] => {
+      const childNodes = positionedNodes.filter((node) => node.parentId === parentId)
+      const nodeCount = childNodes.length
+      let currentX = x - childNodes.reduce((sum, node) => sum + node.width, 0) / 2
+
+      return childNodes.flatMap((node) => {
+        const subtreeWidth = calculateSubtreeWidth(positionedNodes, node.id)
+        currentX += subtreeWidth / 2
+
+        const newPosition = {
+          id: node.id.toString(),
+          data: { label: node.title },
+          position: { x: currentX, y: y + NODE_HEIGHT + NODE_SPACING_Y }
+        }
+
+        const placedNodes = [
+          newPosition,
+          ...placeNodes(node.id, currentX, y + NODE_HEIGHT + NODE_SPACING_Y)
         ]
+
+        currentX += subtreeWidth / 2 + NODE_SPACING_X
+
+        return placedNodes
       })
-      .flat()
+    }
+
+    return placeNodes()
   }
 
   const getNodes = async () => {
